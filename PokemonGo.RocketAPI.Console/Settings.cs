@@ -1,10 +1,10 @@
 ﻿#region
 
+using PokemonGoDesktop.API.Common;
+using PokemonGoDesktop.API.Proto;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using PokemonGo.RocketAPI.Enums;
-using PokemonGo.RocketAPI.GeneratedCode;
 using System.Text.RegularExpressions;
 
 #endregion
@@ -114,7 +114,7 @@ namespace PokemonGo.RocketAPI.Console
                     string[] itemInfoArray = itemInfo.Split(' ');
                     string itemName = itemInfoArray.Length > 1 ? itemInfoArray[0] : "";
                     int itemAmount = 0;
-                    if (Int32.TryParse(itemInfoArray.Length > 1 ? itemInfoArray[1] : "100", out itemAmount)) itemAmount = 100;
+                    if (!Int32.TryParse(itemInfoArray.Length > 1 ? itemInfoArray[1] : "100", out itemAmount)) itemAmount = 100;
 
                     ItemId item;
                     if (Enum.TryParse<ItemId>(itemName, out item))
