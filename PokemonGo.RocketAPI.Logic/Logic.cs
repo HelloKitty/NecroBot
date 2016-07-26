@@ -91,8 +91,7 @@ namespace PokemonGo.RocketAPI.Logic
                     pokemon.Latitude, pokemon.Longitude);
                 caughtPokemonResponse =
                     await
-                        _client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnPointId, pokemon.Latitude,
-                            pokemon.Longitude, pokeball);
+                        _client.CatchPokemon(pokemon.EncounterId, pokemon.SpawnPointId, pokeball);
                 if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
                 {
                     foreach (var xp in caughtPokemonResponse.CaptureAward.Xp)

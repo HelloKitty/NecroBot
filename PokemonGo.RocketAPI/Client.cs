@@ -108,8 +108,7 @@ namespace PokemonGo.RocketAPI
         public double CurrentLng { get; private set; }
         public double CurrentAltitude { get; private set; }
 
-        public async Task<CatchPokemonResponse> CatchPokemon(ulong encounterId, string spawnPointGuid, double pokemonLat,
-            double pokemonLng, ItemId pokeball)
+        public async Task<CatchPokemonResponse> CatchPokemon(ulong encounterId, string spawnPointGuid, ItemId pokeball)
         {
             CatchPokemonMessage catchPokemon = new CatchPokemonMessage()
             {
