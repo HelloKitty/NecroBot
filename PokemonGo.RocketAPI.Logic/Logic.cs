@@ -164,6 +164,8 @@ namespace PokemonGo.RocketAPI.Logic
 				_stats.UpdateConsoleTitle(_inventory);
 
 				var catchStatus = attemptCounter > 1
+						? $"{caughtPokemonResponse.Status} Attempt #{attemptCounter}"
+						: $"{caughtPokemonResponse.Status}";
 				Logger.Write(
 					$"(LURED {catchStatus}) | {pokemon.PokemonId} Lvl {PokemonInfo.GetLevel(pokemon)} ({pokemon?.Cp}/{PokemonInfo.CalculateMaxCP(pokemon)} CP) ({Math.Round(PokemonInfo.CalculatePokemonPerfection(pokemon)).ToString("0.00")}% perfect)", LogLevel.Caught);
 
