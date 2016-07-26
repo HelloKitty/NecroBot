@@ -203,6 +203,19 @@ namespace PokemonGo.RocketAPI
             return await AwaitableOnResponseFor<EncounterMessage, EncounterResponse>(encounterPokemonMessage, RequestType.Encounter);
         }
 
+        public async Task<DiskEncounterResponse> EncounterLuredPokemon(ulong encounterId, string spawnPointGuid)
+        {
+            DiskEncounterMessage encounterPokemonMessage = new DiskEncounterMessage()
+            {
+                EncounterId = encounterId,
+                FortId = spawnPointGuid,
+                PlayerLatitude = CurrentLat,
+                PlayerLongitude = CurrentLng,
+            };
+
+            return await AwaitableOnResponseFor<DiskEncounterMessage, DiskEncounterResponse>(encounterPokemonMessage, RequestType.DiskEncounter);
+        }
+
         public async Task<EvolvePokemonResponse> EvolvePokemon(ulong pokemonId)
         {
             EvolvePokemonMessage evolvePokemonMessage = new EvolvePokemonMessage
@@ -213,17 +226,17 @@ namespace PokemonGo.RocketAPI
             return await AwaitableOnResponseFor<EvolvePokemonMessage, EvolvePokemonResponse>(evolvePokemonMessage, RequestType.EvolvePokemon);
         }
 
-		public async Task<FortDetailsResponse> GetFort(string fortId, double fortLat, double fortLng)
-		{
-			FortDetailsMessage fortDetailsMessage = new FortDetailsMessage
-			{
-				FortId = fortId,
-				Latitude = fortLat,
-				Longitude = fortLng
-			};
+        public async Task<FortDetailsResponse> GetFort(string fortId, double fortLat, double fortLng)
+        {
+            FortDetailsMessage fortDetailsMessage = new FortDetailsMessage
+            {
+                FortId = fortId,
+                Latitude = fortLat,
+                Longitude = fortLng
+            };
 
-			return await AwaitableOnResponseFor<FortDetailsMessage, FortDetailsResponse>(fortDetailsMessage, RequestType.FortDetails);
-		}
+            return await AwaitableOnResponseFor<FortDetailsMessage, FortDetailsResponse>(fortDetailsMessage, RequestType.FortDetails);
+        }
 
         public async Task<GetInventoryResponse> GetInventory()
         {
