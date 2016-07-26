@@ -133,7 +133,47 @@ namespace PokemonGo.RocketAPI.Logic
                      caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
         }
 
-        private async Task DisplayHighests()
+		private async Task CatchEncounter(DiskEncounterResponse encounter, PokemonData pokemon, ulong encounterId, string locationGUID)
+		{
+			CatchPokemonResponse caughtPokemonResponse;
+			var attemptCounter = 1;
+			do
+			{
+				//var probability = encounter?.CaptureProbability?.CaptureProbability_?.FirstOrDefault();
+
+				var pokeball = ItemId.ItemPokeBall;
+				if (pokeball == ItemId.ItemUnknown)
+				{
+					Logger.Write(
+						$"No Pokeballs - We missed a {pokemon.PokemonId} with CP {pokemon.Cp}",
+						LogLevel.Caught);
+					return;
+				}
+
+				caughtPokemonResponse =
+					await
+						_client.CatchPokemon(encounterId, locationGUID, pokeball);
+				if (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchSuccess)
+				{
+					foreach (var xp in caughtPokemonResponse.CaptureAward.Xp)
+						_stats.AddExperience(xp);
+					_stats.IncreasePokemons();
+					var profile = await _client.GetPlayer();
+					_stats.GetStardust(profile.PlayerData.Currencies.ToArray()[1].Amount);
+				}
+				_stats.UpdateConsoleTitle(_inventory);
+
+				var catchStatus = attemptCounter > 1
+				Logger.Write(
+					$"(LURED {catchStatus}) | {pokemon.PokemonId} Lvl {PokemonInfo.GetLevel(pokemon)} ({pokemon?.Cp}/{PokemonInfo.CalculateMaxCP(pokemon)} CP) ({Math.Round(PokemonInfo.CalculatePokemonPerfection(pokemon)).ToString("0.00")}% perfect)", LogLevel.Caught);
+
+				attemptCounter++;
+				await Task.Delay(2000);
+			} while (caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchMissed ||
+					 caughtPokemonResponse.Status == CatchPokemonResponse.Types.CatchStatus.CatchEscape);
+		}
+
+		private async Task DisplayHighests()
         {
             Logger.Write("====== DisplayHighestsCP ======", LogLevel.Info, ConsoleColor.Yellow);
             var highestsPokemonCp = await _inventory.GetHighestsCp(20);
@@ -435,6 +475,10 @@ namespace PokemonGo.RocketAPI.Logic
                         LogLevel.Pokestop);
                 }
 
+				//Try to catch any lured pokemon that are at this fort
+				if (pokeStop.LureInfo != null)
+					await TryCatchLuredPokemon(pokeStop);
+
                 await Task.Delay(1000);
                 if (++stopsHit%5 == 0) //TODO: OR item/pokemon bag is full
                 {
@@ -447,8 +491,29 @@ namespace PokemonGo.RocketAPI.Logic
             }
         }
 
+		private async Task TryCatchLuredPokemon(FortData pokeStop)
+		{
+			if (pokeStop.LureInfo == null)
+				return;
 
-        private async Task<ItemId> GetBestBall(EncounterResponse encounter)
+			Logger.Write($"Found lured Pokemon: {pokeStop.LureInfo.ActivePokemonId}. Attempting to encounter.");
+
+			DiskEncounterResponse response = await _client.EncounterLuredPokemon(pokeStop.LureInfo.EncounterId, pokeStop.Id);
+
+			//Check the encounter if it was valid
+			if(response.Result != DiskEncounterResponse.Types.Result.Success)
+			{
+				Logger.Write($"Failed to encounter lured pokemon. Reason: {response.Result}.");
+				return;
+			}
+
+			Logger.Write($"Encountered a lured pokemon.");
+
+			//It's successful so now we should try to capture it
+			await CatchEncounter(response, response.PokemonData, pokeStop.LureInfo.EncounterId, pokeStop.Id);
+		}
+
+		private async Task<ItemId> GetBestBall(EncounterResponse encounter)
         {
             var pokemonCp = encounter?.WildPokemon?.PokemonData?.Cp;
             var iV = Math.Round(PokemonInfo.CalculatePokemonPerfection(encounter?.WildPokemon?.PokemonData));
